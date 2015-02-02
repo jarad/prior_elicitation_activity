@@ -17,13 +17,13 @@ shinyUI(fluidPage(
       hr(),
       helpText("Data:"),
       numericInput("n", "Number of observations", 1),
-      numericInput("n_xp", "Number of experiments", 1)
+      numericInput("n_exp", "Number of experiments", 1)
     ),
     
     mainPanel(
       tabsetPanel(
         tabPanel("Prior", plotOutput("prior"), br(), helpText("Prior quantiles:"), tableOutput("prior_ci") ),
-        tabPanel("Posterior")
+        tabPanel("Posterior", plotOutput("posterior"))
       )
     )
   )
