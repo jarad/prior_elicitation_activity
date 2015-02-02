@@ -51,37 +51,41 @@ shinyServer(function(input,output) {
     rdply(input$n_exp, {
       rows = sample(nrow(d), input$n, replace=TRUE)
       d[rows,]
-    })
+    }, .id = "experiment")
   })
   
   
+  ss = reactive({
+    k  = input$k
+    m  = input$m
+    v  = input$v
+    s2 = input$s^2
+    
+    ddply(experiment(), .(experiment), summarize,
+          ybar = mean(height),
+          n    = length(height)
+          kp   = k + n,
+          mp   = (k*m + n*ybar)/kp,
+          vp   = v + n,
+          ap   = vp/2,
+          bp   = (v*s2 + sum((height-ybar)^2) + (k*n)/kp * (ybar-m)^2)/2,
+          sp   = sqrt(2*bp/vp))
+  })
+  
   output$posterior = renderPlot({
     
-    o = experiment()
+    o = ss()
     
     if (input$n_exp == 1) {
       # If there is only one experiment, just plot prior vs posterior.
-      
-      # Sufficient statistics
-      ybar = mean(o$height)
-      
-      kp = input$k + input$n
-      mp = (input$k*input$m+input$n*ybar)/kp
-      vp = input$v + input$n
-      
-      ap = (input$v+input$n)/2
-      bp = (input$v*input$s^2 + sum((o$height-mean(o$height))^2) + (input$k*input$n)/(input$k+input$n)*(mean(o$height)-input$m)^2)/2
-      
-      sp = sqrt(bp/vp)
-      
-      
+
       # Prior v posterior plot
       par(mfrow=c(1,2))
       
-      curve(dsqrtinvgamma(x, ap, bp), 
-            from = 1/sqrt(qgamma(.99,ap,bp)), 
-            to   = 1/sqrt(qgamma(.01,ap,bp)),
-            n = 1001, 
+      curve(dsqrtinvgamma(x, o$ap, o$bp), 
+            from = 1/sqrt(qgamma(.99,o$ap,o$bp)), 
+            to   = 1/sqrt(qgamma(.01,o$ap,o$bp)),
+            n    = 1001, 
             main = "Prior vs Posterior SD",
             xlab = "Height standard deviation",
             ylab = "Density for height standard deviation",
@@ -92,10 +96,10 @@ shinyServer(function(input,output) {
       legend("topright", c("Prior","Posterior"), lwd=2, col=c("gray","black"))
       
       
-      curve(ns_dt(x, vp, mp, sp/sqrt(kp)), 
-            from = mp-sp/sqrt(kp)*qt(.99, vp), 
-            to   = mp+sp/sqrt(kp)*qt(.99, vp),
-            ylim = c(0,ns_dt(mp, vp, mp, sp/sqrt(kp))),
+      curve(ns_dt(x, o$vp, o$mp, o$sp/sqrt(o$kp)), 
+            from = o$mp-o$sp/sqrt(o$kp)*qt(.99, o$vp), 
+            to   = o$mp+o$sp/sqrt(o$kp)*qt(.99, o$vp),
+            ylim = c(0,ns_dt(o$mp, o$vp, o$mp, o$sp/sqrt(o$kp))),
             main = "Prior vs Posterior Mean",
             xlab = "Mean height", 
             ylab = "Density for mean height",
