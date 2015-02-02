@@ -63,7 +63,7 @@ shinyServer(function(input,output) {
     
     ddply(experiment(), .(experiment), summarize,
           ybar = mean(height),
-          n    = length(height)
+          n    = length(height),
           kp   = k + n,
           mp   = (k*m + n*ybar)/kp,
           vp   = v + n,
