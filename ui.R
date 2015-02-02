@@ -16,14 +16,20 @@ shinyUI(fluidPage(
       numericInput("v", "SD sample size", 1),
       hr(),
       helpText("Data:"),
-      numericInput("n", "Number of observations", 1),
-      numericInput("n_exp", "Number of experiments", 1)
+      numericInput("n_exp", "Number of experiments", 1),
+      numericInput("n", "Number of observations per experiment", 2),
+      hr(),
+      helpText("Inference:"),
+      numericInput("alpha", "CI error rate (alpha):", .05, 0, 1),
+      checkboxInput("grand_mean", "Include grand mean?", value=FALSE)
     ),
     
     mainPanel(
       tabsetPanel(
-        tabPanel("Prior", plotOutput("prior"), br(), helpText("Prior quantiles:"), tableOutput("prior_ci") ),
-        tabPanel("Posterior", plotOutput("posterior"))
+        tabPanel("Prior",     plotOutput("prior"), br(), helpText("Prior quantiles:"), tableOutput("prior_ci") ),
+        tabPanel("Posterior", plotOutput("posterior"), br(), helpText("Coverage:"), tableOutput("coverage")),
+        tabPanel("Data",      dataTableOutput("data")),
+        tabPanel("Sufficient statistics",      dataTableOutput("ss"))
       )
     )
   )

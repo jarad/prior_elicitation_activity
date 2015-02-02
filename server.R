@@ -1,5 +1,6 @@
 library(shiny)
 library(plyr)
+library(ggplot2)
 
 ns_dt = function(x,v,m,s) dt((x-m)/s,v)/s
 dinvgamma = function(x, a, b) dgamma(1/x, a, b)/x^2
@@ -7,11 +8,10 @@ dsqrtinvgamma = function(x, a, b) dinvgamma(x^2,a,b)*2*x
 
 
 
-d = read.csv("heights.csv")
+height_df = read.csv("heights.csv")
+grand_mean = mean(height_df$height)
 
 shinyServer(function(input,output) {
-  
-  
   
   output$prior = renderPlot({
     
@@ -47,38 +47,70 @@ shinyServer(function(input,output) {
     
   
   # Randomly select data
-  experiment = reactive({
+  data = reactive({
     rdply(input$n_exp, {
-      rows = sample(nrow(d), input$n, replace=TRUE)
-      d[rows,]
+      rows = sample(nrow(height_df), input$n, replace=TRUE)
+      height_df[rows,]
     }, .id = "experiment")
   })
   
   
-  ss = reactive({
-    k  = input$k
-    m  = input$m
-    v  = input$v
-    s2 = input$s^2
-    
-    ddply(experiment(), .(experiment), summarize,
-          ybar = mean(height),
-          n    = length(height),
-          kp   = k + n,
-          mp   = (k*m + n*ybar)/kp,
-          vp   = v + n,
-          ap   = vp/2,
-          bp   = (v*s2 + sum((height-ybar)^2) + (k*n)/kp * (ybar-m)^2)/2,
-          sp   = sqrt(2*bp/vp))
+  output$data = renderDataTable({
+    data()[,1:2]
   })
   
-  output$posterior = renderPlot({
+  
+  sufficient_statistics = reactive({
+    d = ddply(data(), .(experiment), summarize, 
+              n              = length(height),
+              mean_height    = mean(height),
+              sum_of_squares  = sum((height-mean_height)^2))
+    mutate(d, 
+           kp = input$k + n,
+           mp = (input$k*input$m + n*mean_height)/kp,
+           vp = input$v + n,
+           ap = vp/2,
+           bp = input$v*input$s^2 + sum_of_squares + (input$k*n)/kp*(mean_height-input$m)^2/2,
+           sp = sqrt(2*bp/vp))
+  })
+  
+  output$ss = renderDataTable({
+    sufficient_statistics()
+  })
+
+  
+  credible_intervals = reactive({
+    o = sufficient_statistics()
     
-    o = ss()
+    alpha = input$alpha
+    
+    # limits for informative prior
+    informative_hw     = o$sp/sqrt(o$kp) * qt(1-alpha/2, o$vp) # half-width
+    informative_limits = cbind(o$mp - informative_hw, o$mp + informative_hw)
+    informative_df     = data.frame(prior = "informative", lcl = informative_limits[,1], ucl = informative_limits[,2])
+    informative_df$experiment = 1:nrow(informative_df)
+    
+    if (input$n == 1) { # default prior needs n>1
+      informative_df
+    } else {
+      # limits for default prior 
+      default_hw     = sqrt(o$sum_of_squares/o$n) * qt(1-alpha/2, o$n-1)
+      default_limits = cbind(o$mean_height - default_hw, o$mean_height + default_hw)
+      default_df     = data.frame(prior = "default", lcl = default_limits[,1], ucl = default_limits[,2])
+      default_df$experiment = 1:nrow(default_df)
+      
+      rbind(informative_df, default_df)
+    }
+  })
+  
+  
+
+  output$posterior = renderPlot({
     
     if (input$n_exp == 1) {
       # If there is only one experiment, just plot prior vs posterior.
-
+      o = sufficient_statistics()
+      
       # Prior v posterior plot
       par(mfrow=c(1,2))
       
@@ -105,16 +137,28 @@ shinyServer(function(input,output) {
             ylab = "Density for mean height",
             lwd  = 2)
       
-      
       curve(ns_dt(x, input$v, input$m, input$s/sqrt(input$k)), 
             add = TRUE,
             lwd = 2,
             col="gray")
       
     } else {
-      # If there are more than one experiment, plot credible intervals using both default and informative prior.
-      
+      # If there is more than one experiment, plot credible intervals using both default and informative prior.
+      g = ggplot(credible_intervals(), aes(x=lcl, y=experiment, xend=ucl, yend=experiment, col=prior)) + 
+        geom_segment(size=I(2), alpha=0.5) +
+        labs(title="Credible intervals", x="Mean height", y="Experiment")
+      if (input$grand_mean) g = g + geom_vline(xintercept = grand_mean)
+      print(g)
     }
   })
+  
+  
+  output$coverage = renderTable({
+    if (!input$grand_mean) return(NULL)
+    d = credible_intervals()
+    d$cover = d$lcl < grand_mean & grand_mean < d$ucl
+    ddply(d, .(prior), summarize, coverage = mean(cover))
+  })
+  
   
 })
