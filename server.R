@@ -24,7 +24,8 @@ shinyServer(function(input,output) {
           main = "Prior on height standard deviation",
           xlab = "Height standard deviation",
           ylab = "Density for height standard deviation",
-          lwd  = 2)
+          lwd  = 2,
+          col  = "gray")
     
     curve(ns_dt(x, input$v, input$m, input$s/sqrt(input$k)), 
           from = input$m-input$s/sqrt(input$k)*qt(.99, input$v), 
@@ -33,7 +34,8 @@ shinyServer(function(input,output) {
           main = "Prior on mean height",
           xlab = "Mean height", 
           ylab = "Density for mean height",
-          lwd  = 2)
+          lwd  = 2,
+          col  = "gray")
     
   })
   
@@ -161,7 +163,7 @@ shinyServer(function(input,output) {
   output$coverage = renderTable({
     if (!input$include_truth) return(NULL)
     d = credible_intervals()
-    d$cover = d$lcl < grand_mean & grand_mean < d$ucl
+    d$cover = (d$lcl < grand_mean & grand_mean < d$ucl)
     ddply(d, .(prior), summarize, coverage = mean(cover))
   })
   
