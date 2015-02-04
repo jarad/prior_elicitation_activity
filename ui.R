@@ -7,8 +7,6 @@ shinyUI(fluidPage(
   sidebarLayout(
   
     sidebarPanel(
-      #radioButtons("units", "Units", c(Inches="inches", Centimeters="cms")),
-      #hr(),
       helpText("Prior:"),
       numericInput("m", "Mean height (m)", 67),
       numericInput("k", "Mean height sample size (k)", 6),
@@ -21,7 +19,12 @@ shinyUI(fluidPage(
       hr(),
       helpText("Inference:"),
       numericInput("alpha", "CI error rate (alpha):", .05, 0, 1),
-      checkboxInput("include_truth", "Include truth?", value=FALSE)
+      checkboxInput("include_truth", "Include truth?", value=FALSE),
+      hr(),
+      helpText("Other options:"),
+      radioButtons("units", "Units", c(Inches="inches", Centimeters="cms")),
+      textInput("qts", "Prior quantiles", ".01,.05,.25,.5,.75,.95,.99"),
+      numericInput("seed", "Experiment seed (for reproducibility):", 1)
     ),
     
     mainPanel(
