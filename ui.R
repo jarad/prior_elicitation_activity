@@ -31,8 +31,8 @@ shinyUI(fluidPage(
       tabsetPanel(
         tabPanel("Prior",     plotOutput("prior"), br(), helpText("Prior quantiles:"), tableOutput("prior_ci") ),
         tabPanel("Posterior", plotOutput("posterior"), br(), helpText("Coverage:"), tableOutput("coverage")),
-        tabPanel("Data",      dataTableOutput("data")),
-        tabPanel("Sufficient statistics",      dataTableOutput("ss"))
+        tabPanel("Experiments",      dataTableOutput("data")),
+        tabPanel("Experiment summaries",      dataTableOutput("ss"))
       )
     )
   )
