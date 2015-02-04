@@ -13,7 +13,7 @@ shinyUI(fluidPage(
       numericInput("m", "Mean height (m)", 67),
       numericInput("k", "Mean height sample size (k)", 6),
       numericInput("s", "Standard deviation of heights (s)", 3),
-      numericInput("v", "SD sample size (v)s", 8),
+      numericInput("v", "SD sample size (v)", 8),
       hr(),
       helpText("Data:"),
       numericInput("n_exp", "Number of experiments", 1),
