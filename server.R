@@ -8,10 +8,10 @@ dinvgamma = function(x, a, b) dgamma(1/x, a, b)/x^2
 dsqrtinvgamma = function(x, a, b) dinvgamma(x^2,a,b)*2*x
 
 height_df = read.csv("heights.csv")
-grand_mean = mean(height_df$height)
-grand_sd   = sd(height_df$height)
 
-shinyServer(function(input,output) {
+inches_to_cms = 2.54
+
+shinyServer(function(input,output,session) {
   
   output$prior = renderPlot({
     
@@ -51,16 +51,31 @@ shinyServer(function(input,output) {
   # Convert quantities from inches to centimeters #
   #################################################
   converted_df = reactive({
-    if (input$units=="cms") height_df$height = height_df$height*2.54
+    if (input$units=="cms") height_df$height = height_df$height*inches_to_cms
     height_df
   })
   
   grand_mean = reactive({ mean(converted_df()$height) })
   grand_sd   = reactive({ sd(  converted_df()$height) })
 
+  observe({
+    updateNumericInput(session, 
+                       inputId='m', 
+                       value=ifelse(input$units=="cms", 
+                                    isolate(input$m)*inches_to_cms,
+                                    isolate(input$m)/inches_to_cms))
+    updateNumericInput(session, 
+                       inputId='s', 
+                       value=ifelse(input$units=="cms", 
+                                    isolate(input$s)*inches_to_cms,
+                                    isolate(input$s)/inches_to_cms))
+  })
   
   
-  # Randomly select data
+  
+  #####################################
+  # Run experiments, i.e. sample data #
+  #####################################
   data = reactive({
     d = converted_df()
     set.seed(input$seed)
@@ -144,7 +159,7 @@ shinyServer(function(input,output) {
 
       curve(dsqrtinvgamma(x, input$v/2, input$v*input$s^2/2), lwd=2, col='gray', add=TRUE)
       
-      if (input$include_truth) abline(v=grand_sd)
+      if (input$include_truth) abline(v=grand_sd())
       
       legend("topright", c("Prior","Posterior"), lwd=2, col=c("gray","black"))
       
@@ -163,7 +178,7 @@ shinyServer(function(input,output) {
             lwd = 2,
             col="gray")
       
-      if (input$include_truth) abline(v=grand_mean)
+      if (input$include_truth) abline(v=grand_mean())
       
     } else {
       # If there is more than one experiment, plot credible intervals using both default and informative prior.
@@ -171,7 +186,7 @@ shinyServer(function(input,output) {
         geom_segment(size=I(2), alpha=0.5) +
         labs(title="Credible intervals", x="Mean height", y="Experiment") +
         scale_y_continuous(trans = "reverse", breaks= pretty_breaks())
-      if (input$include_truth) g = g + geom_vline(xintercept = grand_mean)
+      if (input$include_truth) g = g + geom_vline(xintercept = grand_mean())
       print(g)
     }
   })
@@ -180,7 +195,7 @@ shinyServer(function(input,output) {
   output$coverage = renderTable({
     if (!input$include_truth) return(NULL)
     d = credible_intervals()
-    d$cover = ( (d$lcl < grand_mean) & (grand_mean < d$ucl) )
+    d$cover = ( (d$lcl < grand_mean()) & (grand_mean() < d$ucl) )
     d$cover[is.na(d$cover)] = FALSE
     ddply(d, .(prior), summarize, coverage = mean(cover))
   })

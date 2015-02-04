@@ -1,5 +1,7 @@
 library(shiny)
 
+inches_to_cms = 2.54
+
 shinyUI(fluidPage(
 
   titlePanel("Informative Bayesian analysis of mean student height"),
@@ -8,9 +10,9 @@ shinyUI(fluidPage(
   
     sidebarPanel(
       helpText("Prior:"),
-      numericInput("m", "Mean height (m)", 67),
+      numericInput("m", "Mean height (m)", 67*inches_to_cms),
       numericInput("k", "Mean height sample size (k)", 6),
-      numericInput("s", "Standard deviation of heights (s)", 3),
+      numericInput("s", "Standard deviation of heights (s)", 3*inches_to_cms),
       numericInput("v", "SD sample size (v)", 8),
       hr(),
       helpText("Data:"),
