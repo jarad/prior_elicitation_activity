@@ -21,7 +21,7 @@ shinyUI(fluidPage(
       hr(),
       helpText("Inference:"),
       numericInput("alpha", "CI error rate (alpha):", .05, 0, 1),
-      checkboxInput("grand_mean", "Include grand mean?", value=FALSE)
+      checkboxInput("include_truth", "Include truth?", value=FALSE)
     ),
     
     mainPanel(

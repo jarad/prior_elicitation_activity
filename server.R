@@ -10,6 +10,7 @@ dsqrtinvgamma = function(x, a, b) dinvgamma(x^2,a,b)*2*x
 
 height_df = read.csv("heights.csv")
 grand_mean = mean(height_df$height)
+grand_sd   = sd(height_df$height)
 
 shinyServer(function(input,output) {
   
@@ -125,6 +126,8 @@ shinyServer(function(input,output) {
 
       curve(dsqrtinvgamma(x, input$v/2, input$v*input$s^2/2), lwd=2, col='gray', add=TRUE)
       
+      if (input$include_truth) abline(v=grand_sd)
+      
       legend("topright", c("Prior","Posterior"), lwd=2, col=c("gray","black"))
       
       
@@ -142,19 +145,21 @@ shinyServer(function(input,output) {
             lwd = 2,
             col="gray")
       
+      if (input$include_truth) abline(v=grand_mean)
+      
     } else {
       # If there is more than one experiment, plot credible intervals using both default and informative prior.
       g = ggplot(credible_intervals(), aes(x=lcl, y=experiment, xend=ucl, yend=experiment, col=prior)) + 
         geom_segment(size=I(2), alpha=0.5) +
         labs(title="Credible intervals", x="Mean height", y="Experiment")
-      if (input$grand_mean) g = g + geom_vline(xintercept = grand_mean)
+      if (input$include_truth) g = g + geom_vline(xintercept = grand_mean)
       print(g)
     }
   })
   
   
   output$coverage = renderTable({
-    if (!input$grand_mean) return(NULL)
+    if (!input$include_truth) return(NULL)
     d = credible_intervals()
     d$cover = d$lcl < grand_mean & grand_mean < d$ucl
     ddply(d, .(prior), summarize, coverage = mean(cover))
