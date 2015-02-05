@@ -7,6 +7,9 @@
 # R data files from past sessions
 .Rdata
 
+# shiny server files
+shinyapps/
+
 # RStudio files
 .Rproj.user/
 .Rproj.user
