@@ -9,7 +9,7 @@ dsqrtinvgamma = function(x, a, b) dinvgamma(x^2,a,b)*2*x
 
 height_df = read.csv("heights.csv")
 
-inches_to_cms = 2.54
+cm_per_inch = 2.54
 
 shinyServer(function(input,output,session) {
   
@@ -51,7 +51,7 @@ shinyServer(function(input,output,session) {
   # Convert quantities from inches to centimeters #
   #################################################
   converted_df = reactive({
-    if (input$units=="cms") height_df$height = height_df$height*inches_to_cms
+    if (input$units=="cms") height_df$height = height_df$height*cm_per_inch
     height_df
   })
   
@@ -62,13 +62,13 @@ shinyServer(function(input,output,session) {
     updateNumericInput(session, 
                        inputId='m', 
                        value=ifelse(input$units=="cms", 
-                                    isolate(input$m)*inches_to_cms,
-                                    isolate(input$m)/inches_to_cms))
+                                    isolate(input$m)*cm_per_inch,
+                                    isolate(input$m)/cm_per_inch))
     updateNumericInput(session, 
                        inputId='s', 
                        value=ifelse(input$units=="cms", 
-                                    isolate(input$s)*inches_to_cms,
-                                    isolate(input$s)/inches_to_cms))
+                                    isolate(input$s)*cm_per_inch,
+                                    isolate(input$s)/cm_per_inch))
   })
   
   

@@ -1,6 +1,6 @@
 library(shiny)
 
-inches_to_cms = 2.54
+cm_per_inch = 2.54
 
 shinyUI(fluidPage(
 
@@ -10,9 +10,9 @@ shinyUI(fluidPage(
   
     sidebarPanel(
       helpText("Prior:"),
-      numericInput("m", "Mean height (m)", 67*inches_to_cms),
+      numericInput("m", "Mean height (m)", 67*cm_per_inch),
       numericInput("k", "Mean height sample size (k)", 10),
-      numericInput("s", "Standard deviation of heights (s)", 6.5*inches_to_cms),
+      numericInput("s", "Standard deviation of heights (s)", 6.5*cm_per_inch),
       numericInput("v", "SD sample size (v)", 4),
       hr(),
       helpText("Data:"),
