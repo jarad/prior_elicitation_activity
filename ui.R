@@ -10,10 +10,10 @@ shinyUI(fluidPage(
   
     sidebarPanel(
       helpText("Prior:"),
-      numericInput("m", "Mean height (m)", 67*cm_per_inch),
-      numericInput("k", "Mean height sample size (k)", 10),
-      numericInput("s", "Standard deviation of heights (s)", 6.5*cm_per_inch),
-      numericInput("v", "SD sample size (v)", 4),
+      numericInput("m", "Mean height (m)", 0*cm_per_inch),
+      numericInput("k", "Mean height sample size (k)", 1),
+      numericInput("s", "Standard deviation of heights (s)", 1*cm_per_inch),
+      numericInput("v", "SD sample size (v)", 1),
       hr(),
       helpText("Data:"),
       numericInput("n_exp", "Number of experiments", 1),
