@@ -43,7 +43,7 @@ shinyServer(function(input,output,session) {
     df = data.frame(quantile = quantile,
                     mean_height = qt(quantile, input$v)*input$s/sqrt(input$k)+input$m,
                     sd_heights  = 1/sqrt(qgamma(sort(quantile,decreasing=TRUE), input$v/2, input$v*input$s^2/2)))
-    t(df)
+    df
   })
 
   
@@ -185,7 +185,8 @@ shinyServer(function(input,output,session) {
       g = ggplot(credible_intervals(), aes(x=lcl, y=experiment, xend=ucl, yend=experiment, col=prior)) + 
         geom_segment(size=I(2), alpha=0.5) +
         labs(title="Credible intervals", x="Mean height", y="Experiment") +
-        scale_y_continuous(trans = "reverse", breaks= pretty_breaks())
+        scale_y_continuous(trans = "reverse", breaks= pretty_breaks()) +
+        theme_bw()
       if (input$include_truth) g = g + geom_vline(xintercept = grand_mean())
       print(g)
     }
